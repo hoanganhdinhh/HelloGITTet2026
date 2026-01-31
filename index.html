@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -107,7 +106,7 @@
     <div id="virtual-cursor"></div>
     
     <div id="ui-layer">
-        <div id="counter">0 / 3</div>
+        <div id="counter">0 / 1</div>
         <div id="guide-text">Đưa tay lên trước Camera để bắt đầu</div>
         <div id="credit-text"></div>
         
@@ -127,7 +126,7 @@
 
     <script>
         // --- DATA ---
-        const TAROT_DATA = [
+        const DATA = [
             { name: "Bao lì xì 1", url: "lixi.png", meaning: "Kẹo" },
             { name: "Bao lì xì 2", url: "lixi.png", meaning: "Bánh" },
             { name: "Bao lì xì 3", url: "lixi.png", meaning: "Móc Khoá" },
@@ -148,7 +147,7 @@
 
         // --- CẤU HÌNH FINAL ---
         const CONFIG = {
-            cardCount: TAROT_DATA.length, 
+            cardCount: DATA.length, 
             radius: 5.5, 
             cardWidth: 1.4, cardHeight: 2.4, 
             inspectPos: { x: 0, y: 0, z: 3.8 }, 
@@ -195,40 +194,40 @@
             ctx.fillStyle = grad;
             ctx.fillRect(0, 0, 64, 64);
             
-            const tex = new ONE.Texture(canvas);
+            const tex = new THREE.Texture(canvas);
             tex.needsUpdate = true;
             return tex;
         }
 
         function init() {
             const container = document.getElementById('canvas-container');
-            scene = new ONE.Scene();
-            scene.fog = new ONE.FogExp2(0x050505, 0.02);
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x050505, 0.02);
             
-            camera = new ONE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
             camera.position.set(0, 0, 5);
             
-            renderer = new ONE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.toneMapping = ONE.ACESFilmicToneMapping;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
             container.appendChild(renderer.domElement);
 
-            const ambient = new ONE.AmbientLight(0xffffff, 0.6); 
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6); 
             scene.add(ambient);
-            const spotLight = new ONE.SpotLight(0xffffff, 2.0); 
+            const spotLight = new THREE.SpotLight(0xffffff, 2.0); 
             spotLight.position.set(0, 10, 10); 
             scene.add(spotLight);
 
-            textureLoader = new ONE.TextureLoader();
+            textureLoader = new THREE.TextureLoader();
             particleTexture = generateParticleTexture(); 
             
-            shuffleArray(TAROT_DATA);
+            shuffleArray(DATA);
             createCards();
             createBackgroundStars();
 
-            raycaster = new ONE.Raycaster();
-            mouse = new ONE.Vector2();
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
             document.addEventListener('mousedown', onMouseDown);
             window.addEventListener('resize', onResize);
             
@@ -240,37 +239,37 @@
 
         function createBackgroundStars() {
             const starCount = 800;
-            const geo = new ONE.BufferGeometry();
+            const geo = new THREE.BufferGeometry();
             const positions = [];
             const sizes = [];
             for(let i=0; i<starCount; i++) {
                 positions.push((Math.random()-0.5)*60, (Math.random()-0.5)*40, (Math.random()-0.5)*50 - 10);
                 sizes.push(Math.random() * 0.5 + 0.1);
             }
-            geo.setAttribute('position', new ONE.Float32BufferAttribute(positions, 3));
-            geo.setAttribute('size', new ONE.Float32BufferAttribute(sizes, 1));
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geo.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
             const sprite = textureLoader.load('hellogit.png', 'hellogit.png', undefined, (err) => {});
-            const mat = new ONE.PointsMaterial({
+            const mat = new THREE.PointsMaterial({
                 size: 0.8, map: sprite, transparent: true, opacity: 0.9,
-                depthWrite: false, blending: ONE.AdditiveBlending, color: 0xffffff
+                depthWrite: false, blending: THREE.AdditiveBlending, color: 0xffffff
             });
-            starFieldMesh = new ONE.Points(geo, mat);
+            starFieldMesh = new THREE.Points(geo, mat);
             scene.add(starFieldMesh);
         }
 
         function createCards() {
-            cardGroup = new ONE.Group();
+            cardGroup = new THREE.Group();
             scene.add(cardGroup);
-            const geo = new ONE.BoxGeometry(CONFIG.cardWidth, CONFIG.cardHeight, 0.02);
+            const geo = new THREE.BoxGeometry(CONFIG.cardWidth, CONFIG.cardHeight, 0.02);
             const backTex = textureLoader.load('back.png', undefined, undefined, (err) => {});
-            const matEdge = new ONE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.2 }); 
+            const matEdge = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.2 }); 
 
-            TAROT_DATA.forEach((data, i) => {
+            DATA.forEach((data, i) => {
                 const frontTex = textureLoader.load(data.url);
-                const matFront = new ONE.MeshStandardMaterial({ map: frontTex });
-                const matBack = new ONE.MeshStandardMaterial({ map: backTex, color: 0xffffff });
+                const matFront = new THREE.MeshStandardMaterial({ map: frontTex });
+                const matBack = new THREE.MeshStandardMaterial({ map: backTex, color: 0xffffff });
                 const materials = [matEdge, matEdge, matEdge, matEdge, matBack, matFront];
-                const card = new ONE.Mesh(geo, materials);
+                const card = new THREE.Mesh(geo, materials);
                 
                 const angle = (i / CONFIG.cardCount) * Math.PI * 2;
                 card.position.set(Math.sin(angle) * CONFIG.radius, 0, Math.cos(angle) * CONFIG.radius);
@@ -283,7 +282,7 @@
         // --- HIỆU ỨNG NỔ HẠT (Bé, Chậm, Trắng) ---
         function createExplosion(position) {
             const particleCount = 150;
-            const geo = new ONE.BufferGeometry();
+            const geo = new THREE.BufferGeometry();
             const positions = [];
             const velocities = [];
             const sizes = [];
@@ -304,20 +303,20 @@
                 sizes.push(Math.random() * 0.15 + 0.05); 
             }
 
-            geo.setAttribute('position', new ONE.Float32BufferAttribute(positions, 3));
-            geo.setAttribute('size', new ONE.Float32BufferAttribute(sizes, 1));
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geo.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
 
-            const mat = new ONE.PointsMaterial({
+            const mat = new THREE.PointsMaterial({
                 size: 0.2,
                 map: particleTexture, 
                 transparent: true, 
                 opacity: 0.9,
                 depthWrite: false, 
-                blending: ONE.AdditiveBlending, 
+                blending: THREE.AdditiveBlending, 
                 color: 0xffffff 
             });
 
-            const points = new ONE.Points(geo, mat);
+            const points = new THREE.Points(geo, mat);
             scene.add(points);
             explosions.push({ mesh: points, velocities: velocities, age: 0 });
         }
@@ -371,7 +370,7 @@
 
         function getSafeVerticalLeftPosition(index) {
             const dist = camera.position.z - CONFIG.storageZ;
-            const vFOV = ONE.MathUtils.degToRad(camera.fov);
+            const vFOV = THREE.MathUtils.degToRad(camera.fov);
             const visibleHeight = 2 * Math.tan(vFOV / 2) * dist;
             const visibleWidth = visibleHeight * camera.aspect;
 
@@ -414,7 +413,7 @@
             document.getElementById('guide-text').style.opacity = 0;
             document.getElementById('virtual-cursor').style.display = 'none';
             const content = document.getElementById('final-reading');
-            const contexts = ["Thăm Của Bạn"];
+            const contexts = ["Lì Xì của bạn là "];
             let html = "";
             storedCards.forEach((c, i) => {
                 const data = c.userData.data;
